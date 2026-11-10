@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon-IMU-Pipeline</title>
+<style>
+:root{--bg:#ffffff;--fg:#1d2127;--muted:#5b6470;--line:#d9dde3;--card:#f6f7f9;--accent:#c62f2b;--ours:#fdeceb;--ref:#eef3fb;--box:#ffffff;--grp:#f3f5f8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ae;--line:#323840;--card:#1d2126;--accent:#ff6b63;--ours:#3a2222;--ref:#1f2a3a;--box:#1d2126;--grp:#191c21}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ae;--line:#323840;--card:#1d2126;--accent:#ff6b63;--ours:#3a2222;--ref:#1f2a3a;--box:#1d2126;--grp:#191c21}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:40px 16px 64px}
+h1{font-size:2rem;line-height:1.25;margin:0 0 8px}
+h2{font-size:1.35rem;margin:48px 0 12px;padding-top:8px;border-top:1px solid var(--line)}
+p,li{color:var(--fg)} .lead{color:var(--muted);font-size:1.05rem;margin-top:0}
+nav{display:flex;flex-wrap:wrap;gap:6px 18px;margin:18px 0 8px;font-size:.95rem}
+a{color:var(--accent)}
+.fig{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
+.fig.wide{width:min(1560px,calc(100vw - 32px));box-sizing:border-box;position:relative;left:50%;transform:translateX(-50%)}
+.fig svg{width:100%;height:auto;display:block}
+svg .box{fill:var(--box);stroke:var(--fg);stroke-width:1.3}
+svg .out{fill:var(--ref)}
+svg .val{fill:var(--ours);stroke:var(--accent);stroke-width:1.2;stroke-dasharray:4 3}
+svg .t{fill:var(--fg);font-size:13px;text-anchor:middle;font-weight:600}
+svg .s{fill:var(--muted);font-size:12px;font-weight:400}
+svg .lab{fill:var(--fg);font-size:15px;font-weight:700}
+svg .cite{fill:var(--accent);font-size:11.5px;text-anchor:middle;text-decoration:underline}
+svg .vh{fill:var(--muted);font-size:11px;text-anchor:middle;font-style:italic}
+svg .vd{fill:var(--accent);font-size:11.5px;text-anchor:middle;font-weight:600}
+svg .vm{fill:var(--fg);font-size:12px;text-anchor:middle;font-weight:600}
+svg a:hover .vd, svg a:hover .cite, svg a:hover tspan{text-decoration:underline}
+svg .arr{fill:none;stroke:var(--fg);stroke-width:1.6;marker-end:url(#ar)}
+svg .brk{fill:none;stroke:var(--fg);stroke-width:1.6}
+svg .vl{stroke:var(--accent);stroke-width:1.2;stroke-dasharray:3 3}
+svg .ah{fill:var(--fg)}
+svg .off{opacity:.3}
+svg .grp{fill:var(--grp);stroke:var(--muted);stroke-width:1.2}
+svg .branch{fill:none;stroke:var(--fg);stroke-width:1.4;stroke-dasharray:2 4;stroke-linecap:round}
+svg .dash{stroke-dasharray:6 4}
+svg .ours{fill:var(--ours);stroke:var(--accent);stroke-width:1.8}
+svg .gl{fill:var(--muted);font-size:12.5px;text-anchor:middle;font-weight:600}
+.legend{font-size:.88rem;color:var(--muted)}
+.authors{font-size:1.02rem;margin:0 0 6px} .aff{color:var(--muted)}
+ol.refs li{margin:4px 0}
+h3{font-size:1.25rem;margin:32px 0 10px} h4{font-size:.98rem;margin:22px 0 4px}
+.cap{color:var(--muted);font-size:.88rem;margin:6px 0 0}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:600;border-bottom:2px solid var(--line)}
+table.wrap td,table.wrap th{white-space:normal;text-align:left;vertical-align:top}
+table.wrap td:first-child{white-space:nowrap}
+tr.sep td{border-top:2px solid var(--line)}
+th.grp,td.grp{border-left:2px solid var(--line)} thead th[colspan]{text-align:center}
+table.ev{font-size:.82rem} table.ev th,table.ev td{padding:6px 6px}
+.summary{background:var(--card);border-left:4px solid var(--accent);padding:10px 14px;border-radius:6px}
+.fig img{width:100%;height:auto;display:block;border-radius:6px;background:#fff}
+
+main{max-width:1440px}
+.ex{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.ex figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+.ex h4{margin:2px 0 8px}
+.ex video{width:100%;height:auto;display:block;border-radius:6px;background:#000;margin:0 0 8px}
+.ex figcaption{color:var(--muted);font-size:.88rem}
+.val3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+.val3 a{display:block;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;
+padding:12px 14px;color:var(--fg);text-decoration:none}
+.val3 a b{color:var(--accent)} .val3 a span{display:block;color:var(--muted);font-size:.9rem;margin-top:4px}
+ol.out li{margin:4px 0}
+@media (max-width:760px){.ex,.val3{grid-template-columns:1fr}}
+</style></head>
+<body><main>
+<h1>Neon-IMU-Pipeline</h1>
+<p class="authors">Vignesh Radhakrishnan and Mark Hollands<br><span class="aff">School of Sport &amp; Exercise Sciences, Liverpool John Moores University, UK</span></p>
+<p class="lead">By leveraging our novel minimal-sensor protocol and processing pipeline, we are able to study the effect of indoor environmental features on gaze and movement, allowing us to identify areas of increased fall risk and sub-optimal movement patterns.</p>
+<nav><a href="#pipeline">Pipeline</a><a href="#examples">Example results</a><a href="#validation">Validation</a></nav>
+
+<h2 id="pipeline">Proposed protocol and pipeline</h2>
+<div class="fig"><img src="assets/pipeline.svg" alt="Proposed pipeline: Pupil Labs Neon glasses and three IMUs (pelvis, left and right foot) into calibration and time synchronisation, then three branches: images and IMU into the SLAM module and ScaRF-SLAM, giving a metric 3D point cloud and trajectory; the Pupil Labs analysis, giving eye and pupillometric metrics; and gait-sequence, stride and gait-event detection, zero-velocity updates and WGL CMP, giving biomechanical metrics."></div>
+<p>The pipeline provides:</p>
+<ol class="out" type="a">
+<li>the trajectory of motion in the indoor environment, including a 3D reconstruction map;</li>
+<li>gait metrics at every step and stride;</li>
+<li>gaze and pupillometric measures at every step and stride, and over a fixed window period.</li>
+</ol>
+<p>Combining these, we are able to detect unstable or compensatory steps and analyse the context and environment that resulted in such steps.</p>
+
+<h2 id="examples">Example results</h2>
+<div class="ex"><figure><h4>Terraced house (House1_1)</h4><video src="assets/House1_1_front_trajectory.mp4" muted playsinline preload="auto" aria-label="Terraced house: trajectory through the 3D reconstruction"></video><video src="assets/House1_1_front_heatmap.mp4" muted playsinline preload="auto" aria-label="Terraced house: gaze heat map on the 3D reconstruction"></video><figcaption>Recorded in a terraced house at Liverpool John Moores University. Top: the trajectory of the glasses through the 3D reconstruction map. Bottom: where the gaze landed, as a heat map on the map.</figcaption></figure><figure><h4>Department building (Dept_2)</h4><video src="assets/Dept_2_front_trajectory.mp4" muted playsinline preload="auto" aria-label="Department building: trajectory through the 3D reconstruction"></video><video src="assets/Dept_2_front_heatmap.mp4" muted playsinline preload="auto" aria-label="Department building: gaze heat map on the 3D reconstruction"></video><figcaption>Recorded in the department building at Liverpool John Moores University. Top: the trajectory of the glasses through the 3D reconstruction map. Bottom: where the gaze landed, as a heat map on the map.</figcaption></figure></div>
+<div class="fig"><img src="assets/examples_gait_head.png" alt="Stride length per stride over each recording with the regions of the building shaded, and head elevation per region, for the terraced house (House1_1) and the department building (Dept_2)"></div>
+<p class="cap">Gait and head posture from the same recordings. Top: stride length of every stride (left and right foot) over the recording, as one bar per stride coloured by the region of the building it was walked in. Bottom: head elevation in each region (mean ± SD over the strides in it).</p>
+
+<h2 id="validation">Validation</h2>
+<p>Each sub-part of the pipeline has been validated using open-source datasets and data collected at the motion capture laboratories at Liverpool John Moores University:</p>
+<div class="val3"><a href="https://vigneshrk29.github.io/trajectory-validation/" target="_blank" rel="noopener"><b>1) Trajectory validation</b><span>Camera trajectories from egocentric video and IMU against motion capture, Aria MPS and floor plans on four datasets.</span></a><a href="https://vigneshrk29.github.io/gazeVerification/" target="_blank" rel="noopener"><b>2) Look-ahead distance validation</b><span>Look-ahead distance from Neon gaze and the glasses' trajectory against motion capture.</span></a><a href="https://vigneshrk29.github.io/Biomechanical-Verification/" target="_blank" rel="noopener"><b>3) Biomechanical verification</b><span>Gait sequences, gait events, zero-velocity updates, ground contact and gait metrics against insoles, motion capture and a pressure walkway on three open datasets.</span></a></div>
+</main>
+<script>
+// the four videos start together; each recording's pair restarts together when its longer video ends
+(function () {
+  var groups = Array.prototype.map.call(document.querySelectorAll(".ex figure"), function (f) {
+    return Array.prototype.slice.call(f.querySelectorAll("video")); });
+  var all = [].concat.apply([], groups), started = false, ready = 0;
+  function play(vs) { vs.forEach(function (v) { v.currentTime = 0; var p = v.play(); if (p) p.catch(function () {}); }); }
+  function start() { if (!started) { started = true; play(all); } }
+  all.forEach(function (v) {
+    v.loop = false; v.muted = true; v.pause();
+    if (v.readyState >= 3) { if (++ready === all.length) start(); }
+    else v.addEventListener("canplaythrough", function () { if (++ready === all.length) start(); }, { once: true });
+  });
+  setTimeout(start, 6000);               // do not wait forever on a slow connection
+  groups.forEach(function (g) { g.forEach(function (v) { v.addEventListener("ended", function () {
+    if (g.every(function (x) { return x.ended; })) play(g); }); }); });
+})();
+</script>
+</body></html>
